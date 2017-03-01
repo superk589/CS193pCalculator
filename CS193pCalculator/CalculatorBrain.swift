@@ -76,7 +76,7 @@ struct CalculatorBrain {
     
     var result: Double? {
         get {
-            return accumulator!
+            return accumulator
         }
     }
 }
