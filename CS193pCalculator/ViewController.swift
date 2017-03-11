@@ -12,6 +12,8 @@ class ViewController: UIViewController {
 
     var userIsInTheMiddleOfTyping = false
     
+    @IBOutlet weak var sequence: UILabel!
+   
     @IBOutlet weak var display: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,12 +54,20 @@ class ViewController: UIViewController {
         
         if let symbol = sender.currentTitle {
             brain.performOperation(symbol)
+            sequence.text = brain.description
         }
         
         if let result = brain.result {
             displayValue = result
         }
     }
+    
+    @IBAction func clear(_ sender: UIButton) {
+        brain.clear()
+        display.text = "0"
+        sequence.text = ""
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
