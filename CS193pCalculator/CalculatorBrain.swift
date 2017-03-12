@@ -17,6 +17,13 @@ struct CalculatorBrain: CustomStringConvertible {
     
     private var accumulator: Operand?
     
+    private var internalSequence = [OperationSequenceItem]()
+    
+    private struct OperationSequenceItem {
+        var operand: Operand?
+        var symbol: String?
+    }
+    
     private enum Operation {
         case constant(Double)
         case unaryOperation(UnaryOperation)
@@ -38,8 +45,8 @@ struct CalculatorBrain: CustomStringConvertible {
     ]
     
     mutating func performOperation(_ symbol: String) {
-        accumulator?.text = accumulator?.text.trimmingCharacters(in: ["=", " "]) ?? ""
         if let operation = operations[symbol] {
+            internalSequence.append(OperationSequenceItem.init(operand: nil, symbol: symbol))
             switch operation {
             case .constant(let constant):
                 accumulator = (constant, "\(symbol)")
@@ -84,7 +91,43 @@ struct CalculatorBrain: CustomStringConvertible {
     }
     
     mutating func setOperand(_ operand: Double) {
-        accumulator = (operand, String(operand))
+        setOperand((operand, String(operand)))
+    }
+    
+    mutating func setOperand(_ operand: Operand) {
+        accumulator = operand
+        internalSequence.append(OperationSequenceItem.init(operand: accumulator, symbol: nil))
+    }
+    
+    var variables = [String: Double]()
+    
+    mutating func setOperand(variable named: String) {
+        if let value = variables[named] {
+            accumulator = (value, named)
+        } else {
+            accumulator = (0, named)
+        }
+        internalSequence.append(OperationSequenceItem.init(operand: accumulator, symbol: nil))
+    }
+    
+    func evaluate(using variables: Dictionary<String, Double>? = nil) -> (result: Double?, isPending: Bool, description: String) {
+        var brain = CalculatorBrain()
+        if variables != nil {
+            brain.variables = variables!
+        }
+        let sequence = internalSequence
+        for item in sequence {
+            if var operand = item.operand {
+                if let newValue = variables?[operand.text] {
+                    operand.value = newValue
+                }
+                brain.setOperand(operand)
+            }
+            if let symbol = item.symbol {
+                brain.performOperation(symbol)
+            }
+        }
+        return (brain.result, brain.resultIsPending, brain.description)
     }
     
     var result: Double? {
@@ -96,6 +139,14 @@ struct CalculatorBrain: CustomStringConvertible {
     mutating func clear() {
         accumulator = nil
         pendingBinaryOperation = nil
+        variables.removeAll()
+        internalSequence.removeAll()
+    }
+    
+    mutating func undo() {
+        if internalSequence.count > 0 {
+            internalSequence.removeLast()
+        }
     }
     
     var description: String {

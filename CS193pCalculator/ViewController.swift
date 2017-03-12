@@ -12,6 +12,7 @@ class ViewController: UIViewController {
 
     var userIsInTheMiddleOfTyping = false
     
+    @IBOutlet weak var variable: UILabel!
     @IBOutlet weak var sequence: UILabel!
    
     @IBOutlet weak var display: UILabel!
@@ -54,25 +55,41 @@ class ViewController: UIViewController {
         
         if let symbol = sender.currentTitle {
             brain.performOperation(symbol)
-            sequence.text = brain.description
         }
-        
-        if let result = brain.result {
-            displayValue = result
-        }
+        evaluate()
     }
     
     @IBAction func clear(_ sender: UIButton) {
         brain.clear()
         display.text = "0"
+        userIsInTheMiddleOfTyping = false
         sequence.text = ""
+        variable.text = ""
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    @IBAction func touchVariable(_ sender: UIButton) {
+        brain.setOperand(variable: sender.currentTitle ?? "")
+        display.text = sender.currentTitle ?? ""
     }
-
-
+    
+    @IBAction func touchToEvaluate(_ sender: UIButton) {
+        brain.variables["M"] = displayValue
+        variable.text = "M = \(displayValue)"
+        evaluate()
+    }
+    
+    @IBAction func touchUndo(_ sender: UIButton) {
+        brain.undo()
+        evaluate()
+    }
+    
+    private func evaluate() {
+        let (result, _, description) = brain.evaluate(using: brain.variables)
+        if result != nil {
+            sequence.text = description
+            displayValue = result!
+        }
+        userIsInTheMiddleOfTyping = false
+    }
 }
 
