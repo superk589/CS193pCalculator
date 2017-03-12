@@ -17,11 +17,11 @@ struct CalculatorBrain: CustomStringConvertible {
     
     private var accumulator: Operand?
     
-    private var internalSequence = [OperationSequenceItem]()
+    private var internalSequence = [SequenceItem]()
     
-    private struct OperationSequenceItem {
-        var operand: Operand?
-        var symbol: String?
+    private enum SequenceItem {
+        case operand(Operand)
+        case symbol(String)
     }
     
     private enum Operation {
@@ -46,7 +46,7 @@ struct CalculatorBrain: CustomStringConvertible {
     
     mutating func performOperation(_ symbol: String) {
         if let operation = operations[symbol] {
-            internalSequence.append(OperationSequenceItem.init(operand: nil, symbol: symbol))
+            internalSequence.append(SequenceItem.symbol(symbol))
             switch operation {
             case .constant(let constant):
                 accumulator = (constant, "\(symbol)")
@@ -90,24 +90,29 @@ struct CalculatorBrain: CustomStringConvertible {
         }
     }
     
-    mutating func setOperand(_ operand: Double) {
-        setOperand((operand, String(operand)))
+    mutating func setOperand(_ operandValue: Double) {
+        if ceil(operandValue) == operandValue {
+            setOperand((operandValue, String(Int(operandValue))))
+        } else {
+            setOperand((operandValue, String(operandValue)))
+        }
     }
     
     mutating func setOperand(_ operand: Operand) {
+        internalSequence.append(SequenceItem.operand(operand))
         accumulator = operand
-        internalSequence.append(OperationSequenceItem.init(operand: accumulator, symbol: nil))
     }
     
     var variables = [String: Double]()
     
     mutating func setOperand(variable named: String) {
+        var operand: Operand
         if let value = variables[named] {
-            accumulator = (value, named)
+            operand = (value, named)
         } else {
-            accumulator = (0, named)
+            operand = (0, named)
         }
-        internalSequence.append(OperationSequenceItem.init(operand: accumulator, symbol: nil))
+        setOperand(operand)
     }
     
     func evaluate(using variables: Dictionary<String, Double>? = nil) -> (result: Double?, isPending: Bool, description: String) {
@@ -117,13 +122,13 @@ struct CalculatorBrain: CustomStringConvertible {
         }
         let sequence = internalSequence
         for item in sequence {
-            if var operand = item.operand {
+            switch item {
+            case .operand(var operand):
                 if let newValue = variables?[operand.text] {
                     operand.value = newValue
                 }
                 brain.setOperand(operand)
-            }
-            if let symbol = item.symbol {
+            case .symbol(let symbol):
                 brain.performOperation(symbol)
             }
         }

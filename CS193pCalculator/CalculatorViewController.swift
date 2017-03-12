@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class CalculatorViewController: UIViewController {
 
     var userIsInTheMiddleOfTyping = false
     
@@ -26,7 +26,11 @@ class ViewController: UIViewController {
             return Double(display.text!)!
         }
         set {
-            self.display.text = String(newValue)
+            if ceil(newValue) == newValue {
+                self.display.text = String(Int(newValue))
+            } else {
+                self.display.text = String(newValue)
+            }
         }
     }
     
@@ -79,8 +83,18 @@ class ViewController: UIViewController {
     }
     
     @IBAction func touchUndo(_ sender: UIButton) {
-        brain.undo()
-        evaluate()
+        if userIsInTheMiddleOfTyping {
+            if let count = display.text?.characters.count, count > 1 {
+                let newString = display.text!.substring(to: display.text!.index(before: display.text!.endIndex))
+                display.text = newString
+            } else {
+                displayValue = 0
+                userIsInTheMiddleOfTyping = false
+            }
+        } else {
+            brain.undo()
+            evaluate()
+        }
     }
     
     private func evaluate() {
@@ -90,6 +104,12 @@ class ViewController: UIViewController {
             displayValue = result!
         }
         userIsInTheMiddleOfTyping = false
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc = segue.destination.contents as? GraphViewController {
+            vc.brain = self.brain
+        }
     }
 }
 
