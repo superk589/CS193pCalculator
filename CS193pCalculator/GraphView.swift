@@ -36,36 +36,49 @@ class GraphView: UIView {
     
     weak var delegate: GraphViewDataSource?
     
-    override func awakeFromNib() {
-        super.awakeFromNib()
-    }
-    
     private var axexDrawer = AxesDrawer()
     
     override func draw(_ rect: CGRect) {
         axexDrawer.drawAxes(in: bounds, origin: axesCenter, pointsPerUnit: pointsPerUnit)
         color.set()
-        generatePath().stroke()
+        let paths = generatePaths()
+        for path in paths {
+            path.stroke()
+        }
     }
     
-    private func generatePath() -> UIBezierPath {
+    private func generatePaths() -> [UIBezierPath] {
+        
+        var paths = [UIBezierPath]()
+        
         var firstLoop = true
-        let path = UIBezierPath()
-        for x in stride(from: bounds.minX, to: bounds.maxX, by: 2) {
-            if let y = delegate?.graphView(self, yValueForGiven: getXValue(CGFloat(x))), checkPointValidation(point: CGPoint(x: x, y: getYposition(y))) {
+        var path = UIBezierPath()
+        paths.append(path)
+        
+        for xPoint in stride(from: bounds.minX, to: bounds.maxX, by: 2) {
+            if let yValue = delegate?.graphView(self, yValueForGiven: getXValue(CGFloat(xPoint))) {
+                let yPoint = getYposition(yValue)
+                let point = CGPoint.init(x: xPoint, y: yPoint)
+                guard checkValidation(of: point) else {
+                    if !firstLoop {
+                        path = UIBezierPath()
+                        paths.append(path)
+                        firstLoop = true
+                    }
+                    continue
+                }
                 if firstLoop {
-                    path.move(to: CGPoint.init(x: CGFloat(x), y: getYposition(y)))
+                    path.move(to: point)
                     firstLoop = false
                 } else {
-                    path.addLine(to: CGPoint.init(x: CGFloat(x), y: getYposition(y)))
+                    path.addLine(to: point)
                 }
             }
         }
-        path.lineWidth = 2
-        return path
+        return paths
     }
     
-    private func checkPointValidation(point: CGPoint) -> Bool {
+    private func checkValidation(of point: CGPoint) -> Bool {
         return self.bounds.contains(point)
     }
     

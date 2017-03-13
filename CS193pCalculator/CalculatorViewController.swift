@@ -26,10 +26,10 @@ class CalculatorViewController: UIViewController {
             return Double(display.text!)!
         }
         set {
-            if ceil(newValue) == newValue {
-                self.display.text = String(Int(newValue))
-            } else {
+            if newValue != Double.nan || newValue != .infinity || ceil(newValue) != newValue {
                 self.display.text = String(newValue)
+            } else {
+                self.display.text = String(Int(newValue))
             }
         }
     }
@@ -110,6 +110,14 @@ class CalculatorViewController: UIViewController {
         if let vc = segue.destination.contents as? GraphViewController {
             vc.brain = self.brain
         }
+    }
+    
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+        // if brain is pending should not segue to graph view
+        if identifier == "ShowGraph" && brain.resultIsPending {
+            return false
+        }
+        return true
     }
 }
 
