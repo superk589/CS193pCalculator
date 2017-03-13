@@ -48,7 +48,8 @@ class GraphViewController: UIViewController {
         switch panGesture.state {
         case .changed, .ended:
             let translation = panGesture.translation(in: graphView)
-            graphView.origin = CGPoint(x: graphView.axesCenter.x + translation.x / graphView.pointsPerUnit, y: graphView.axesCenter.y + translation.y / graphView.pointsPerUnit)
+            graphView.origin = CGPoint(x: graphView.axesCenter.x + translation.x, y: graphView.axesCenter.y + translation.y)
+            panGesture.setTranslation(CGPoint.zero, in: graphView)
         default:
             break
         }
