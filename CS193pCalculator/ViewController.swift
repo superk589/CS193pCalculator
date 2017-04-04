@@ -63,6 +63,36 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
+    private func showSizeClasses() {
+        if !userIsInTheMiddleOfTyping {
+            display.text = "width " + traitCollection.horizontalSizeClass.description + " height " + traitCollection.verticalSizeClass.description
+            display.textAlignment = .center
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        showSizeClasses()
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { (coordinator) in
+            self.showSizeClasses()
+        }, completion: nil)
+    }
 }
 
+
+extension UIUserInterfaceSizeClass: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .compact:
+            return "Compact"
+        case .regular:
+            return "Regular"
+        case .unspecified:
+            return "??"
+        }
+    }
+}
