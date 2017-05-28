@@ -31,7 +31,7 @@ class GraphViewController: UIViewController {
             let tapGesture = UITapGestureRecognizer.init(target: self, action: #selector(handleTapGesture(_:)))
             tapGesture.numberOfTapsRequired = 2
             graphView.addGestureRecognizer(tapGesture)
-            graphView.delegate = self
+            graphView.dataSource = self
             updateUI()
         }
     }

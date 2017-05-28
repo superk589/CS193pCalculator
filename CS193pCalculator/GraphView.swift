@@ -34,12 +34,12 @@ class GraphView: UIView {
         }
     }
     
-    weak var delegate: GraphViewDataSource?
+    weak var dataSource: GraphViewDataSource?
     
-    private var axexDrawer = AxesDrawer()
+    private var axesDrawer = AxesDrawer()
     
     override func draw(_ rect: CGRect) {
-        axexDrawer.drawAxes(in: bounds, origin: axesCenter, pointsPerUnit: pointsPerUnit)
+        axesDrawer.drawAxes(in: bounds, origin: axesCenter, pointsPerUnit: pointsPerUnit)
         color.set()
         let paths = generatePaths()
         for path in paths {
@@ -56,7 +56,7 @@ class GraphView: UIView {
         paths.append(path)
         
         for xPoint in stride(from: bounds.minX, to: bounds.maxX, by: 2) {
-            if let yValue = delegate?.graphView(self, yValueForGiven: getXValue(CGFloat(xPoint))) {
+            if let yValue = dataSource?.graphView(self, yValueForGiven: getXValue(CGFloat(xPoint))) {
                 let yPoint = getYposition(yValue)
                 let point = CGPoint.init(x: xPoint, y: yPoint)
                 guard checkValidation(of: point) else {
